@@ -8,6 +8,7 @@ def get_db():
     return pd.read_csv(path_db)
 
 df = get_db()
+df["season"] = df["season"].astype("string")
 
 with st.sidebar:
     st.subheader("Filtros")
@@ -20,16 +21,21 @@ with st.sidebar:
     max_home_odds = st.number_input("Max Odds Casa",min_value=1.,max_value=1000.,step=0.05,format="%.2f",value=1.8,)
     min_over25_odds = st.number_input("Min Odds Over25",min_value=1.,max_value=1000.,step=0.05,format="%.2f",value=1.1,)
     max_over25_odds = st.number_input("Max Odds Over25",min_value=1.,max_value=1000.,step=0.05,format="%.2f",value=1.8,)
-    team_name = st.selectbox("Qual Time",df[df["league"]==league]["home_name"].unique())
+    home_min_ppg = st.number_input("Min PPG Mandante",min_value=0.,max_value=3.,step=0.1,value=2.)
+    home_max_ppg = st.number_input("Max PPG Mandante",min_value=0.,max_value=3.,step=0.1,value=3.)
+    
+    team_name = st.selectbox("Qual Time",df[(df["league"]==league) & (df["country"]==country)]["home_name"].unique())
     home_option = st.checkbox("Mandante")
     away_option = st.checkbox("Visitante")
     container = st.container()
-    all_seasons = st.checkbox("Todas Temporadas")
-    if all_seasons:
-        seasons = container.multiselect("Qual Temporada?",df[df["country"]==country]["season"].unique(),df[df["country"]==country]["season"].unique())
-    else:
-        seasons = container.multiselect("Qual Temporada?",df[df["country"]==country]["season"].unique())
-
+    #all_seasons = st.checkbox("Todas Temporadas")
+    #if all_seasons:        
+    seasons = st.multiselect("Qual Temporada?",
+                                        df[(df["league"]==league) & (df["country"]==country)]["season"].unique(),
+                                        df[(df["league"]==league) & (df["country"]==country)]["season"].unique()
+                                        )
+    #else:
+    #    seasons = container.multiselect("Qual Temporada?",df[(df["league"]==league) & (df["country"]==country)]["season"].unique())
 
 st.subheader("Minuto " + str(base_min)+ " com o Placar em "+ str(placar_home) + " vs " + str(placar_away))
 if (home_option & away_option):
@@ -37,6 +43,7 @@ if (home_option & away_option):
     (df["homeScore"+str(base_min)]==placar_home) & 
     (df["awayScore"+str(base_min)]==placar_away) &
     ((df["country"]==country))& ((df["league"]==league)) &
+    (df["home_ppg"]>= home_min_ppg) & (df["home_ppg"]<= home_max_ppg) &
     (df["odds_ft_1"]>= min_home_odds) & (df["odds_ft_1"]<= max_home_odds) &
     (df["odds_ft_over25"]>= min_over25_odds) & (df["odds_ft_over25"]<= max_over25_odds) &
     ((df["home_name"]==team_name) | (df["away_name"]==team_name))&
@@ -47,6 +54,7 @@ elif( home_option):
     (df["homeScore"+str(base_min)]==placar_home) & 
     (df["awayScore"+str(base_min)]==placar_away) &
     ((df["country"]==country))& ((df["league"]==league)) &
+    (df["home_ppg"]>= home_min_ppg) & (df["home_ppg"]<= home_max_ppg) &
     (df["odds_ft_1"]>= min_home_odds) & (df["odds_ft_1"]<= max_home_odds) &
     (df["odds_ft_over25"]>= min_over25_odds) & (df["odds_ft_over25"]<= max_over25_odds) &
     ( ( df["home_name"]==team_name))&
@@ -57,6 +65,7 @@ elif(away_option):
     (df["homeScore"+str(base_min)]==placar_home) & 
     (df["awayScore"+str(base_min)]==placar_away) &
     ((df["country"]==country))& ((df["league"]==league)) &
+    (df["home_ppg"]>= home_min_ppg) & (df["home_ppg"]<= home_max_ppg) &
     (df["odds_ft_1"]>= min_home_odds) & (df["odds_ft_1"]<= max_home_odds) &
     (df["odds_ft_over25"]>= min_over25_odds) & (df["odds_ft_over25"]<= max_over25_odds) &
     ( ( df["away_name"]==team_name))&
@@ -67,6 +76,7 @@ else:
     (df["homeScore"+str(base_min)]==placar_home) & 
     (df["awayScore"+str(base_min)]==placar_away) &    
     ((df["country"]==country))& ((df["league"]==league)) &
+    (df["home_ppg"]>= home_min_ppg) & (df["home_ppg"]<= home_max_ppg) &
     (df["odds_ft_1"]>= min_home_odds) & (df["odds_ft_1"]<= max_home_odds) &
     (df["odds_ft_over25"]>= min_over25_odds) & (df["odds_ft_over25"]<= max_over25_odds) &
     (df["season"].isin(seasons))
